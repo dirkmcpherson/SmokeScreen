@@ -9,16 +9,10 @@ import { app, Menu, BrowserWindow } from 'electron';
 import { devMenuTemplate } from './menu/dev_menu_template';
 import { editMenuTemplate } from './menu/edit_menu_template';
 import createWindow from './helpers/window';
-import { Browser } from './browser';
-
 
 // Special module holding environment variables which you declared
 // in config/env_xxx.json file.
 import env from './env';
-
-var mainWindow;
-var browserWindow;
-var transparentWindowOverlay;
 
 var setApplicationMenu = function () {
     var menus: any[] = [editMenuTemplate];
@@ -36,21 +30,6 @@ if (env.name !== 'production') {
     app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
 
-let browser = new Browser()
-var browserUpdateIntervalID = null;
-
-var updatePage = function () 
-{
-    let currentURL: string = browser.nextURL;
-    browser.selectNextURL()
-        .then((nextURL) => {
-            console.log("Window loading " + nextURL)
-            browserWindow.loadURL(nextURL)
-        })
-}
-
-var update
-
 app.on('ready', function () {
     setApplicationMenu();
 
@@ -66,28 +45,23 @@ app.on('ready', function () {
     // }));
 
     // todo: Update to promise queue
-    browserUpdateIntervalID = setInterval(updatePage, 5000);
+    // browserUpdateIntervalID = setInterval(updatePage, 5000);
 
-    browserWindow = new BrowserWindow(
-        {width:400, 
-        height:400})
-    transparentWindowOverlay = new BrowserWindow(
-        {parent: browserWindow, 
-        transparent: true,
-        frame: false,
-        width: 400,
-        height: 400})
-    transparentWindowOverlay.setIgnoreMouseEvents(true)
-    transparentWindowOverlay.loadURL(url.format({
-        pathname: path.join(__dirname, 'app.html'),
-        protocol: 'file:',
-        slashes: true
-    }))
-    browserWindow.loadURL(browser.nextURL)
-
-    // if (env.name === 'development') {
-    //     mainWindow.openDevTools();
-    // }
+    // browserWindow = new BrowserWindow(
+    //     {width:400, 
+    //     height:400})
+    // transparentWindowOverlay = new BrowserWindow(
+    //     {parent: browserWindow, 
+    //     transparent: true,
+    //     frame: false,
+    //     width: 400,
+    //     height: 400})
+    // transparentWindowOverlay.setIgnoreMouseEvents(true)
+    // transparentWindowOverlay.loadURL(url.format({
+    //     pathname: path.join(__dirname, 'app.html'),
+    //     protocol: 'file:',
+    //     slashes: true
+    // }));
 });
 
 app.on('window-all-closed', function () {

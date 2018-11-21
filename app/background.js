@@ -131,16 +131,6 @@ if (env.name !== 'production') {
     var userDataPath = electron.app.getPath('userData');
     electron.app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
-var browser = new Browser();
-var browserUpdateIntervalID = null;
-var updatePage = function () {
-    var currentURL = browser.nextURL;
-    browser.selectNextURL()
-        .then(function (nextURL) {
-        console.log("Window loading " + nextURL);
-        browserWindow.loadURL(nextURL);
-    });
-};
 electron.app.on('ready', function () {
     setApplicationMenu();
     // var mainWindow = createWindow('main', {
@@ -153,24 +143,20 @@ electron.app.on('ready', function () {
     //     slashes: true
     // }));
     // todo: Update to promise queue
-    browserUpdateIntervalID = setInterval(updatePage, 5000);
-    browserWindow = new electron.BrowserWindow({ width: 400,
-        height: 400 });
-    transparentWindowOverlay = new electron.BrowserWindow({ parent: browserWindow,
-        transparent: true,
-        frame: false,
-        width: 400,
-        height: 400 });
-    transparentWindowOverlay.setIgnoreMouseEvents(true);
-    transparentWindowOverlay.loadURL(url.format({
-        pathname: path.join(__dirname, 'app.html'),
-        protocol: 'file:',
-        slashes: true
-    }));
-    browserWindow.loadURL(browser.nextURL);
-    // if (env.name === 'development') {
-    //     mainWindow.openDevTools();
-    // }
+    // browserUpdateIntervalID = setInterval(updatePage, 5000);
+    // browserWindow = new electron.BrowserWindow({ width: 400,
+    //     height: 400 });
+    // transparentWindowOverlay = new electron.BrowserWindow({ parent: browserWindow,
+    //     transparent: true,
+    //     frame: false,
+    //     width: 400,
+    //     height: 400 });
+    // transparentWindowOverlay.setIgnoreMouseEvents(true);
+    // transparentWindowOverlay.loadURL(url.format({
+    //     pathname: path.join(__dirname, 'app.html'),
+    //     protocol: 'file:',
+    //     slashes: true
+    // }));
 });
 electron.app.on('window-all-closed', function () {
     electron.app.quit();
