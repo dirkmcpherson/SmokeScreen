@@ -40,74 +40,81 @@ var editMenuTemplate = {
     ]
 };
 
-var rp = require('request-promise');
-var cheerio = require('cheerio');
-var fs = require('fs');
-
-var ROOT_PREFIX = 'https://www.';
-
-var Browser = /** @class */ (function () {
-    function Browser() {
-        var _this = this;
-        this.rootURLs = ['infowars.com', 'slate.com', 'reddit.com'];
-        this.rootURLIdx = 0;
-        this.options = {
-            uri: this.nextURL,
-            transform: function (body) {
-                return cheerio.load(body);
-            }
+// This helper remembers the size and position of your windows (and restores
+// them in that place after app relaunch).
+// Can be used for more than one window, just construct many
+// instances of it and give each different name.
+var jetpack = require('fs-jetpack');
+var createWindow = function (name, options) {
+    var userDataDir = jetpack.cwd(electron.app.getPath('userData'));
+    var stateStoreFile = 'window-state-' + name + '.json';
+    var defaultSize = {
+        width: options.width,
+        height: options.height
+    };
+    var state = {};
+    var win;
+    var restore = function () {
+        var restoredState = {};
+        try {
+            restoredState = userDataDir.read(stateStoreFile, 'json');
+        }
+        catch (err) {
+            // For some reason json can't be read (might be corrupted).
+            // No worries, we have defaults.
+        }
+        return Object.assign({}, defaultSize, restoredState);
+    };
+    var getCurrentPosition = function () {
+        var position = win.getPosition();
+        var size = win.getSize();
+        return {
+            x: position[0],
+            y: position[1],
+            width: size[0],
+            height: size[1]
         };
-        this.selectNextURL = function (toVisit) {
-            return new Promise(function (resolve) {
-                if (toVisit) {
-                    _this.nextURL = toVisit;
-                }
-                else {
-                    toVisit = _this.nextURL;
-                }
-                console.log('visiting ' + _this.nextURL);
-                _this.options.uri = _this.nextURL;
-                rp(_this.options)
-                    .then(function ($) {
-                    var urlToVisit = _this.path; // default to base URL
-                    var links = $('a');
-                    if (links.length == 0) {
-                        // no links, just visit the same root url
-                        console.log("No links found on page.");
-                    }
-                    else {
-                        var randomIdx = Math.floor(Math.random() * $(links).length);
-                        // We only want to navigate to URLs within the original root domain
-                        var href = $(links)[randomIdx].attribs.href;
-                        console.log('Randomly selected ' + href);
-                        if (href.includes(_this.rootURLs[_this.rootURLIdx])) {
-                            urlToVisit = href;
-                        }
-                        else if (!href.includes('http')) {
-                            urlToVisit = _this.path + href;
-                        }
-                    }
-                    _this.nextURL = urlToVisit;
-                    console.log('returning with val ' + _this.nextURL);
-                    resolve(_this.nextURL);
-                })
-                    .catch(function (err) {
-                    console.log('Error accessing page, reverting to root path.');
-                    _this.nextURL = _this.path;
-                    resolve(_this.path);
-                });
-            });
-        };
-        this.path = ROOT_PREFIX + this.rootURLs[this.rootURLIdx];
-        this.nextURL = this.path;
-    }
-    return Browser;
-}());
+    };
+    var windowWithinBounds = function (windowState, bounds) {
+        return windowState.x >= bounds.x &&
+            windowState.y >= bounds.y &&
+            windowState.x + windowState.width <= bounds.x + bounds.width &&
+            windowState.y + windowState.height <= bounds.y + bounds.height;
+    };
+    var resetToDefaults = function (windowState) {
+        var bounds = electron.screen.getPrimaryDisplay().bounds;
+        return Object.assign({}, defaultSize, {
+            x: (bounds.width - defaultSize.width) / 2,
+            y: (bounds.height - defaultSize.height) / 2
+        });
+    };
+    var ensureVisibleOnSomeDisplay = function (windowState) {
+        var visible = electron.screen.getAllDisplays().some(function (display) {
+            return windowWithinBounds(windowState, display.bounds);
+        });
+        if (!visible) {
+            // Window is partially or fully not visible now.
+            // Reset it to safe defaults.
+            return resetToDefaults(windowState);
+        }
+        return windowState;
+    };
+    var saveState = function () {
+        if (!win.isMinimized() && !win.isMaximized()) {
+            Object.assign(state, getCurrentPosition());
+        }
+        userDataDir.write(stateStoreFile, state, { atomic: true });
+    };
+    state = ensureVisibleOnSomeDisplay(restore());
+    win = new electron.BrowserWindow(Object.assign({}, options, state));
+    win.on('close', saveState);
+    return win;
+};
 
 // Simple wrapper exposing environment variables to rest of the code.
-var jetpack = require('fs-jetpack');
+var jetpack$1 = require('fs-jetpack');
 // The variables have been written to `env.json` by the build process.
-var env = jetpack.cwd(__dirname).read('env.json', 'json');
+var env = jetpack$1.cwd(__dirname).read('env.json', 'json');
 
 // This is main process of Electron, started as first thing when your
 // app starts. This script is running through entire life of your application.
@@ -115,8 +122,6 @@ var env = jetpack.cwd(__dirname).read('env.json', 'json');
 // window from here.
 // Special module holding environment variables which you declared
 // in config/env_xxx.json file.
-var browserWindow;
-var transparentWindowOverlay;
 var setApplicationMenu = function () {
     var menus = [editMenuTemplate];
     if (env.name !== 'production') {
@@ -133,25 +138,27 @@ if (env.name !== 'production') {
 }
 electron.app.on('ready', function () {
     setApplicationMenu();
-    // var mainWindow = createWindow('main', {
-    //     width: 1000,
-    //     height: 600
-    // });
-    // mainWindow.loadURL(url.format({
-    //     pathname: path.join(__dirname, 'app.html'),
-    //     protocol: 'file:',
-    //     slashes: true
-    // }));
+    var mainWindow = createWindow('main', {
+        width: 1000,
+        height: 600
+    });
+    mainWindow.loadURL(url.format({
+        pathname: path.join(__dirname, 'app.html'),
+        protocol: 'file:',
+        slashes: true
+    }));
     // todo: Update to promise queue
     // browserUpdateIntervalID = setInterval(updatePage, 5000);
-    // browserWindow = new electron.BrowserWindow({ width: 400,
-    //     height: 400 });
-    // transparentWindowOverlay = new electron.BrowserWindow({ parent: browserWindow,
+    // browserWindow = new BrowserWindow(
+    //     {width:400, 
+    //     height:400})
+    // transparentWindowOverlay = new BrowserWindow(
+    //     {parent: browserWindow, 
     //     transparent: true,
     //     frame: false,
     //     width: 400,
-    //     height: 400 });
-    // transparentWindowOverlay.setIgnoreMouseEvents(true);
+    //     height: 400})
+    // transparentWindowOverlay.setIgnoreMouseEvents(true)
     // transparentWindowOverlay.loadURL(url.format({
     //     pathname: path.join(__dirname, 'app.html'),
     //     protocol: 'file:',

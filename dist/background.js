@@ -4,7 +4,7 @@
 // window from here.
 import * as path from 'path';
 import * as url from 'url';
-import { app, Menu, BrowserWindow } from 'electron';
+import { app, Menu } from 'electron';
 import { devMenuTemplate } from './menu/dev_menu_template';
 import { editMenuTemplate } from './menu/edit_menu_template';
 import createWindow from './helpers/window';
@@ -27,25 +27,27 @@ if (env.name !== 'production') {
 }
 app.on('ready', function () {
     setApplicationMenu();
-    // var mainWindow = createWindow('main', {
-    //     width: 1000,
-    //     height: 600
-    // });
-    // mainWindow.loadURL(url.format({
-    //     pathname: path.join(__dirname, 'app.html'),
-    //     protocol: 'file:',
-    //     slashes: true
-    // }));
+    var mainWindow = createWindow('main', {
+        width: 1000,
+        height: 600
+    });
+    mainWindow.loadURL(url.format({
+        pathname: path.join(__dirname, 'app.html'),
+        protocol: 'file:',
+        slashes: true
+    }));
     // todo: Update to promise queue
     // browserUpdateIntervalID = setInterval(updatePage, 5000);
-    // browserWindow = new BrowserWindow({ width: 400,
-    //     height: 400 });
-    // transparentWindowOverlay = new BrowserWindow({ parent: browserWindow,
+    // browserWindow = new BrowserWindow(
+    //     {width:400, 
+    //     height:400})
+    // transparentWindowOverlay = new BrowserWindow(
+    //     {parent: browserWindow, 
     //     transparent: true,
     //     frame: false,
     //     width: 400,
-    //     height: 400 });
-    // transparentWindowOverlay.setIgnoreMouseEvents(true);
+    //     height: 400})
+    // transparentWindowOverlay.setIgnoreMouseEvents(true)
     // transparentWindowOverlay.loadURL(url.format({
     //     pathname: path.join(__dirname, 'app.html'),
     //     protocol: 'file:',

@@ -33,16 +33,16 @@ if (env.name !== 'production') {
 app.on('ready', function () {
     setApplicationMenu();
 
-    // var mainWindow = createWindow('main', {
-    //     width: 1000,
-    //     height: 600
-    // });
+    var mainWindow = createWindow('main', {
+        width: 1000,
+        height: 600
+    });
 
-    // mainWindow.loadURL(url.format({
-    //     pathname: path.join(__dirname, 'app.html'),
-    //     protocol: 'file:',
-    //     slashes: true
-    // }));
+    mainWindow.loadURL(url.format({
+        pathname: path.join(__dirname, 'app.html'),
+        protocol: 'file:',
+        slashes: true
+    }));
 
     // todo: Update to promise queue
     // browserUpdateIntervalID = setInterval(updatePage, 5000);

@@ -28,13 +28,14 @@ let idx = 0;
 console.log('The author of this app is:', appDir.read('package.json', 'json').author);
 
 document.addEventListener('DOMContentLoaded', function () {
-  document.getElementById('greet').innerHTML = greet();
-  document.getElementById('platform-info').innerHTML = os.platform();
-  document.getElementById('env-name').innerHTML = env.name;
+  // document.getElementById('greet').innerHTML = greet();
+  // document.getElementById('platform-info').innerHTML = os.platform();
+  // document.getElementById('env-name').innerHTML = env.name;
 
   view = document.getElementById('view');
 
   browserLoopInterval = setInterval(() => {
+    console.log("Browser loop interval")
     //view.openDevTools()
     view.executeJavaScript('console.log(document.getElementsByTagName("a"))')
 
