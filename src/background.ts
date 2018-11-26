@@ -5,12 +5,11 @@
 
 import * as path from 'path';
 import * as url from 'url';
-import { app, Menu, BrowserWindow } from 'electron';
+import { app, Menu, BrowserWindow, ipcMain } from 'electron';
 import { devMenuTemplate } from './menu/dev_menu_template';
 import { editMenuTemplate } from './menu/edit_menu_template';
 import createWindow from './helpers/window';
 import { Browser } from './browser';
-
 
 // Special module holding environment variables which you declared
 // in config/env_xxx.json file.
@@ -54,36 +53,49 @@ var update
 app.on('ready', function () {
     setApplicationMenu();
 
-    // var mainWindow = createWindow('main', {
-    //     width: 1000,
-    //     height: 600
-    // });
 
-    // mainWindow.loadURL(url.format({
-    //     pathname: path.join(__dirname, 'app.html'),
-    //     protocol: 'file:',
-    //     slashes: true
-    // }));
-
-    // todo: Update to promise queue
     browserUpdateIntervalID = setInterval(updatePage, 5000);
+    const x_start = 0
+    const y_start = 0
+    const w = 250
+    const h = 225
 
-    browserWindow = new BrowserWindow(
-        {width:400, 
-        height:400})
-    transparentWindowOverlay = new BrowserWindow(
-        {parent: browserWindow, 
+    browserWindow = new BrowserWindow({
+        x:x_start,
+        y:y_start,
+        width:w, 
+        height:h,
+        show:false
+    })
+    transparentWindowOverlay = new BrowserWindow({
+        parent: browserWindow, 
+        x:x_start,
+        y:y_start,
         transparent: true,
         frame: false,
-        width: 400,
-        height: 400})
+        width: w,
+        height: h,
+        show: false
+    })
     transparentWindowOverlay.setIgnoreMouseEvents(true)
     transparentWindowOverlay.loadURL(url.format({
         pathname: path.join(__dirname, 'app.html'),
         protocol: 'file:',
         slashes: true
     }))
+    transparentWindowOverlay.setBrowser
     browserWindow.loadURL(browser.nextURL)
+
+    browserWindow.once('ready-to-show', () => {
+        browserWindow.show()
+        transparentWindowOverlay.show()
+    })
+
+    browserWindow.on('resize', function (e, x, y) {
+        // update child container size
+        let browserSize = browserWindow.getContentSize();
+        transparentWindowOverlay.setContentSize(browserSize[0], browserSize[1], true)
+    });
 
     // if (env.name === 'development') {
     //     mainWindow.openDevTools();

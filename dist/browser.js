@@ -6,11 +6,13 @@ var fs = require('fs');
 //     path = path + '/smoke_screen_log.txt'
 // }
 var ROOT_PREFIX = 'https://www.';
+var ROOT_CHANGE_INTERVAL = 20; // How often we change which root url we're using
 var Browser = /** @class */ (function () {
     function Browser() {
         var _this = this;
         this.rootURLs = ['infowars.com', 'slate.com', 'reddit.com'];
         this.rootURLIdx = 0;
+        this.urlIncrementCount = 0;
         this.options = {
             uri: this.nextURL,
             transform: function (body) {
@@ -23,6 +25,13 @@ var Browser = /** @class */ (function () {
                     _this.nextURL = toVisit;
                 }
                 else {
+                    _this.urlIncrementCount += 1;
+                    if ((_this.urlIncrementCount % ROOT_CHANGE_INTERVAL) == 0) {
+                        _this.rootURLIdx = (_this.rootURLIdx + 1) % _this.rootURLs.length;
+                        _this.path = ROOT_PREFIX + _this.rootURLs[_this.rootURLIdx];
+                        console.log("Incrementing root url to " + _this.path);
+                        _this.nextURL = _this.path;
+                    }
                     toVisit = _this.nextURL;
                 }
                 console.log('visiting ' + _this.nextURL);
@@ -39,7 +48,7 @@ var Browser = /** @class */ (function () {
                         var randomIdx = Math.floor(Math.random() * $(links).length);
                         // We only want to navigate to URLs within the original root domain
                         var href = $(links)[randomIdx].attribs.href;
-                        console.log('Randomly selected ' + href);
+                        // console.log('Randomly selected ' + href);
                         if (href.includes(_this.rootURLs[_this.rootURLIdx])) {
                             urlToVisit = href;
                         }
@@ -48,7 +57,7 @@ var Browser = /** @class */ (function () {
                         }
                     }
                     _this.nextURL = urlToVisit;
-                    console.log('returning with val ' + _this.nextURL);
+                    // console.log('returning with val ' + this.nextURL)
                     resolve(_this.nextURL);
                 })
                     .catch(function (err) {

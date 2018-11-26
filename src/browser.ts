@@ -9,11 +9,13 @@ var fs = require('fs');
 //     path = path + '/smoke_screen_log.txt'
 // }
 const ROOT_PREFIX: string = 'https://www.'
+const ROOT_CHANGE_INTERVAL = 20 // How often we change which root url we're using
 
 class Browser {
     path: string; // Current root url
     rootURLs: string[] = ['infowars.com', 'slate.com', 'reddit.com']
     rootURLIdx: number = 0;
+    urlIncrementCount: number = 0;
     nextURL: string;
     options = {
         uri: this.nextURL,
@@ -35,6 +37,14 @@ class Browser {
             }
             else
             {
+                this.urlIncrementCount += 1
+                if ((this.urlIncrementCount % ROOT_CHANGE_INTERVAL) == 0)
+                {
+                    this.rootURLIdx = (this.rootURLIdx + 1) % this.rootURLs.length
+                    this.path = ROOT_PREFIX + this.rootURLs[this.rootURLIdx]
+                    console.log("Incrementing root url to " + this.path)
+                    this.nextURL = this.path
+                }
                 toVisit = this.nextURL;
             }
 
@@ -55,7 +65,7 @@ class Browser {
                         
                         // We only want to navigate to URLs within the original root domain
                         let href: string = $(links)[randomIdx].attribs.href;
-                        console.log('Randomly selected ' + href);
+                        // console.log('Randomly selected ' + href);
                         if (href.includes(this.rootURLs[this.rootURLIdx]))
                         {
                             urlToVisit = href;
@@ -68,7 +78,7 @@ class Browser {
                     
                     this.nextURL = urlToVisit;
                      
-                    console.log('returning with val ' + this.nextURL)
+                    // console.log('returning with val ' + this.nextURL)
                     resolve(this.nextURL);
                 })
                 .catch((err) => {

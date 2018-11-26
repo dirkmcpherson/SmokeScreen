@@ -38,57 +38,48 @@ var updatePage = function () {
         browserWindow.loadURL(nextURL);
     });
 };
-// var nextURL = `https://www.google.com`;
-// var browserUpdate = function() {
-//     console.log('Browser update: ' + nextURL)
-//     const options = {
-//         uri: nextURL,
-//         transform: function (body) {
-//             return cheerio.load(body);
-//         }
-//     };
-//     rp(options)
-//         .then(($) => {
-//             // console.log($());
-//             // Scrape the page and save the next url
-//             nextURL = `https://www.sears.com`
-//             var links = $('a'); //jquery get all hyperlinks
-//             $(links).each(function(i, link){
-//               console.log($(link).text() + ':\n  ' + $(link).attr('href'));
-//             });
-//         })
-//         .catch((err) => {
-//             console.log(err);
-//         });
-// }
 var update;
 app.on('ready', function () {
     setApplicationMenu();
-    // var mainWindow = createWindow('main', {
-    //     width: 1000,
-    //     height: 600
-    // });
-    // mainWindow.loadURL(url.format({
-    //     pathname: path.join(__dirname, 'app.html'),
-    //     protocol: 'file:',
-    //     slashes: true
-    // }));
-    // todo: Update to promise queue
     browserUpdateIntervalID = setInterval(updatePage, 5000);
-    browserWindow = new BrowserWindow({ width: 400,
-        height: 400 });
-    transparentWindowOverlay = new BrowserWindow({ parent: browserWindow,
+    var x_start = 0;
+    var y_start = 0;
+    var w = 250;
+    var h = 225;
+    browserWindow = new BrowserWindow({
+        x: x_start,
+        y: y_start,
+        width: w,
+        height: h,
+        show: false
+    });
+    transparentWindowOverlay = new BrowserWindow({
+        parent: browserWindow,
+        x: x_start,
+        y: y_start,
         transparent: true,
         frame: false,
-        width: 400,
-        height: 400 });
+        width: w,
+        height: h,
+        show: false
+    });
     transparentWindowOverlay.setIgnoreMouseEvents(true);
     transparentWindowOverlay.loadURL(url.format({
         pathname: path.join(__dirname, 'app.html'),
         protocol: 'file:',
         slashes: true
     }));
+    transparentWindowOverlay.setBrowser;
     browserWindow.loadURL(browser.nextURL);
+    browserWindow.once('ready-to-show', function () {
+        browserWindow.show();
+        transparentWindowOverlay.show();
+    });
+    browserWindow.on('resize', function (e, x, y) {
+        // update child container size
+        var browserSize = browserWindow.getContentSize();
+        transparentWindowOverlay.setContentSize(browserSize[0], browserSize[1], true);
+    });
     // if (env.name === 'development') {
     //     mainWindow.openDevTools();
     // }
