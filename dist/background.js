@@ -34,7 +34,6 @@ var updatePage = function () {
     var currentURL = browser.nextURL;
     browser.selectNextURL()
         .then(function (nextURL) {
-        console.log("Window loading " + nextURL);
         browserWindow.loadURL(nextURL);
     });
 };
@@ -51,7 +50,8 @@ app.on('ready', function () {
         y: y_start,
         width: w,
         height: h,
-        show: false
+        show: false,
+        icon: path.join(__dirname, 'build/icons/512x512.png')
     });
     transparentWindowOverlay = new BrowserWindow({
         parent: browserWindow,

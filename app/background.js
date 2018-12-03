@@ -48,7 +48,7 @@ var fs = require('fs');
 //     path = path + '/smoke_screen_log.txt'
 // }
 var ROOT_PREFIX = 'https://www.';
-var ROOT_CHANGE_INTERVAL = 20; // How often we change which root url we're using
+var ROOT_CHANGE_INTERVAL = 10; // How often we change which root url we're using
 var Browser = /** @class */ (function () {
     function Browser() {
         var _this = this;
@@ -148,7 +148,6 @@ var updatePage = function () {
     var currentURL = browser.nextURL;
     browser.selectNextURL()
         .then(function (nextURL) {
-        console.log("Window loading " + nextURL);
         browserWindow.loadURL(nextURL);
     });
 };
@@ -164,7 +163,8 @@ electron.app.on('ready', function () {
         y: y_start,
         width: w,
         height: h,
-        show: false
+        show: false,
+        icon: path.join(__dirname, 'build/icons/512x512.png')
     });
     transparentWindowOverlay = new electron.BrowserWindow({
         parent: browserWindow,

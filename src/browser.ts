@@ -9,7 +9,7 @@ var fs = require('fs');
 //     path = path + '/smoke_screen_log.txt'
 // }
 const ROOT_PREFIX: string = 'https://www.'
-const ROOT_CHANGE_INTERVAL = 20 // How often we change which root url we're using
+const ROOT_CHANGE_INTERVAL = 10 // How often we change which root url we're using
 
 class Browser {
     path: string; // Current root url
