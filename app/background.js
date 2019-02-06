@@ -87,15 +87,36 @@ var Browser = /** @class */ (function () {
                         console.log("No links found on page.");
                     }
                     else {
-                        var randomIdx = Math.floor(Math.random() * $(links).length);
-                        // We only want to navigate to URLs within the original root domain
-                        var href = $(links)[randomIdx].attribs.href;
-                        // console.log('Randomly selected ' + href);
-                        if (href.includes(_this.rootURLs[_this.rootURLIdx])) {
-                            urlToVisit = href;
-                        }
-                        else if (!href.includes('http')) {
-                            urlToVisit = _this.path + href;
+                        // Try to find a non-email, non-download link 5 times
+                        for (var index = 0; index < 5; index++) {
+                            var randomIdx = Math.floor(Math.random() * $(links).length);
+                            // We only want to navigate to URLs within the original root domain
+                            var href = $(links)[randomIdx].attribs.href;
+                            var re = /(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/;
+                            var isEmail = re.test(href);
+                            // todo: determine if link is download
+                            // from https://stackoverflow.com/questions/37383600/detect-if-link-is-a-download-in-javascript-jquery
+                            // $.get(href, function (response, status, xhr) {
+                            //     if (xhr.getResponseHeader("content-type").indexOf("text") > -1)
+                            //     {
+                            //         // Text based stuff.
+                            //     }
+                            //     else
+                            //     {
+                            //       // Download based stuff. (eg., application/pdf, etc.)
+                            //     }
+                            // });
+                            if (isEmail) {
+                                // do nothing, try again or break out and stay on the same page
+                            }
+                            else if (href.includes(_this.rootURLs[_this.rootURLIdx])) {
+                                urlToVisit = href;
+                                break;
+                            }
+                            else if (!href.includes('http')) {
+                                urlToVisit = _this.path + href;
+                                break;
+                            }
                         }
                     }
                     _this.nextURL = urlToVisit;
